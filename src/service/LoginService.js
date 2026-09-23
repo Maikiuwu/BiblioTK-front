@@ -6,14 +6,20 @@ const logoutUrl =
 	import.meta.env.VITE_LOGOUT_URL ?? "http://localhost:3001/BiblioTK/Logout";
 
 export async function loginUser(loginData) {
-	const response = await fetch(loginUrl, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		credentials: "include",
-		body: JSON.stringify(loginData),
-	});
+	let response;
+
+	try {
+		response = await fetch(loginUrl, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			credentials: "include",
+			body: JSON.stringify(loginData),
+		});
+	} catch {
+		throw new Error("No se pudo conectar con el servicio de autenticación.");
+	}
 
 	if (!response.ok) {
 		const error = await response.json().catch(() => ({}));
@@ -24,9 +30,15 @@ export async function loginUser(loginData) {
 }
 
 export async function getCurrentSession() {
-	const response = await fetch(sessionUrl, {
-		credentials: "include",
-	});
+	let response;
+
+	try {
+		response = await fetch(sessionUrl, {
+			credentials: "include",
+		});
+	} catch {
+		throw new Error("No se pudo conectar con el servicio de autenticación.");
+	}
 
 	if (!response.ok) {
 		throw new Error("Sesión no válida o expirada.");
@@ -36,10 +48,16 @@ export async function getCurrentSession() {
 }
 
 export async function logoutUser() {
-	const response = await fetch(logoutUrl, {
-		method: "POST",
-		credentials: "include",
-	});
+	let response;
+
+	try {
+		response = await fetch(logoutUrl, {
+			method: "POST",
+			credentials: "include",
+		});
+	} catch {
+		throw new Error("No se pudo conectar con el servicio de autenticación.");
+	}
 
 	if (!response.ok) {
 		throw new Error("No se pudo cerrar la sesión.");

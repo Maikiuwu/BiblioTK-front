@@ -11,6 +11,12 @@ import {
 import { useState } from "react";
 import { registerUser } from "../../service/RegisterService";
 import { createRegisterUserDto } from "../dto/registerUser.dto";
+import {
+	emailPattern,
+	fieldLimits,
+	namePattern,
+	validateUserData as validateSharedUserData,
+} from "../utils/userValidation.js";
 
 const initialFormData = {
 	nombres: "",
@@ -22,63 +28,16 @@ const initialFormData = {
 	nombreUsuario: "",
 };
 
-const emailPattern = "[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}";
-const namePattern = String.raw`[A-Za-zÀ-ÿñÑ' \-]+`;
-const fieldLimits = {
-	email: 100,
-	nombres: 60,
-	apellidos: 60,
-	nombreUsuario: 40,
-};
-
+// Reglas de nombres/apellidos/cc/email/celular/nombreUsuario viven en userValidation.js
+// (compartidas con la edición de perfil); acá solo se agrega la contraseña, que el perfil no tiene.
 function validateUserData(formData) {
-	const trimmed = {
-		nombres: formData.nombres.trim(),
-		apellidos: formData.apellidos.trim(),
-		email: formData.email.trim(),
-		cc: formData.cc.trim(),
-		contrasena: formData.contrasena.trim(),
-		celular: formData.celular.trim(),
-		nombreUsuario: formData.nombreUsuario.trim(),
-	};
+	const sharedError = validateSharedUserData(formData);
 
-	if (!/^[0-9]+$/.test(trimmed.cc) || Number(trimmed.cc) <= 0) {
-		return { field: "cc", message: "La cédula debe ser un número válido." };
+	if (sharedError) {
+		return sharedError;
 	}
 
-	if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(trimmed.email)) {
-		return { field: "email", message: "Ingresa un correo válido." };
-	}
-
-	if (trimmed.nombres.length < 2 || !new RegExp(namePattern).test(trimmed.nombres)) {
-		return {
-			field: "nombres",
-			message: "Los nombres solo pueden tener letras, espacios y acentos.",
-		};
-	}
-
-	if (trimmed.apellidos.length < 2 || !new RegExp(namePattern).test(trimmed.apellidos)) {
-		return {
-			field: "apellidos",
-			message: "Los apellidos solo pueden tener letras, espacios y acentos.",
-		};
-	}
-
-	if (trimmed.nombreUsuario.length < 3 || trimmed.nombreUsuario.length > fieldLimits.nombreUsuario) {
-		return {
-			field: "nombreUsuario",
-			message: "El nombre de usuario debe tener entre 3 y 40 caracteres.",
-		};
-	}
-
-	if (!/^[0-9]{7,15}$/.test(trimmed.celular)) {
-		return {
-			field: "celular",
-			message: "El celular debe tener entre 7 y 15 dígitos.",
-		};
-	}
-
-	if (trimmed.contrasena.length < 8) {
+	if (formData.contrasena.trim().length < 8) {
 		return {
 			field: "contrasena",
 			message: "La contraseña debe tener al menos 8 caracteres.",
@@ -129,8 +88,15 @@ function Register({ onBack }) {
 			await registerUser(userData);
 			setSubmitted(true);
 		} catch (registerError) {
-			console.error("Error al registrar el usuario:", registerError);
-			setError("No se pudo registrar el usuario. Inténtalo de nuevo.");
+			if (registerError.field) {
+				setFieldError({
+					field: registerError.field,
+					message: registerError.message,
+				});
+				document.getElementById(registerError.field)?.focus();
+			} else {
+				setError(registerError.message);
+			}
 		} finally {
 			setIsSubmitting(false);
 		}
