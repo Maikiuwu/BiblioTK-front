@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
 	Navigate,
 	Route,
@@ -33,15 +33,6 @@ const ROLE_HOME = {
 	},
 };
 
-// bibliotk_rol la deja InicioSesionBiblioTK en el mismo POST /Login, sin httpOnly:
-// evita esperar un segundo /Sesion solo para saber a qué app redirigir
-function leerCookie(nombre) {
-	const fila = document.cookie
-		.split("; ")
-		.find((parte) => parte.startsWith(`${nombre}=`));
-	return fila ? decodeURIComponent(fila.split("=")[1]) : null;
-}
-
 function getRoleHomeUrl(role) {
 	const normalizedRole = String(role ?? "")
 		.trim()
@@ -70,39 +61,22 @@ const MOTIVO_MENSAJES = {
 function AppContent() {
 	const navigate = useNavigate();
 	const [searchParams] = useSearchParams();
-	const [session, setSession] = useState(null);
 	const [sessionMessage, setSessionMessage] = useState(
 		() => MOTIVO_MENSAJES[searchParams.get("motivo")] ?? "",
 	);
 
-	useEffect(() => {
-		let isActive = true;
+	async function handleLoginSuccess() {
+		try {
+			const currentSession = await getCurrentSession();
+			const rol = currentSession?.user?.rol;
 
-		getCurrentSession()
-			.then((currentSession) => {
-				if (!isActive) return;
-				setSession(currentSession?.user ?? null);
-			})
-			.catch(() => {
-				if (!isActive) return;
-				setSession(null);
-			});
+			if (!rol) throw new Error("Sesión sin rol");
 
-		return () => {
-			isActive = false;
-		};
-	}, []);
-
-	function handleLoginSuccess() {
-		const rol = leerCookie("bibliotk_rol");
-
-		if (!rol) {
+			window.location.assign(getRoleHomeUrl(rol));
+		} catch {
 			setSessionMessage("No se pudo validar la sesión. Intenta nuevamente.");
 			navigate("/login", { replace: true });
-			return;
 		}
-
-		window.location.assign(getRoleHomeUrl(rol));
 	}
 
 	return (

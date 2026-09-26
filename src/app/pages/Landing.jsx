@@ -5,8 +5,9 @@ import {
 	Books,
 	UserCircle,
 } from "@phosphor-icons/react";
-import { Button, buttonClasses, Footer } from "bibliotk-ui";
+import { Button, buttonClasses } from "bibliotk-ui";
 import { Link } from "react-router-dom";
+import PublicFooter from "../components/PublicFooter.jsx";
 import PublicNav from "../components/PublicNav.jsx";
 
 const features = [
@@ -124,7 +125,7 @@ function Landing() {
 				</section>
 				<CatalogoBanner />
 			</main>
-			<Footer />
+			<PublicFooter />
 		</div>
 	);
 }

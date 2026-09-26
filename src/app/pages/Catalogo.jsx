@@ -1,9 +1,10 @@
 import { ArrowLeft } from "@phosphor-icons/react";
-import { buttonClasses, Footer } from "bibliotk-ui";
+import { buttonClasses } from "bibliotk-ui";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import PublicNav from "../components/PublicNav.jsx";
 import { listCatalogo } from "../../service/CatalogoService.js";
+import PublicFooter from "../components/PublicFooter.jsx";
+import PublicNav from "../components/PublicNav.jsx";
 
 const tipoLabels = {
 	LIBRO: "Libro",
@@ -129,7 +130,7 @@ function Catalogo() {
 					</>
 				)}
 			</main>
-			<Footer />
+			<PublicFooter />
 		</div>
 	);
 }
