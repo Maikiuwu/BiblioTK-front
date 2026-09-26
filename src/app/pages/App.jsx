@@ -37,7 +37,7 @@ function getRoleHomeUrl(role) {
 	const normalizedRole = String(role ?? "")
 		.trim()
 		.toLowerCase()
-	.replace(/\s+/g, "");
+		.replace(/\s+/g, "");
 	const destination = ROLE_HOME[normalizedRole];
 
 	if (!destination) {
@@ -55,7 +55,8 @@ function getRoleHomeUrl(role) {
 const MOTIVO_MENSAJES = {
 	sesion_expirada: "Tu sesión finalizó. Inicia sesión nuevamente.",
 	sin_permiso: "No tienes permiso para acceder a esa sección con esta cuenta.",
-	cuenta_eliminada: "Tu cuenta fue eliminada. Gracias por haber sido parte de BiblioTK.",
+	cuenta_eliminada:
+		"Tu cuenta fue eliminada. Gracias por haber sido parte de BiblioTK.",
 };
 
 function AppContent() {
@@ -93,7 +94,16 @@ function AppContent() {
 					/>
 				}
 			/>
-			<Route path="/register" element={<Register onBack={() => navigate("/login")} />} />
+			<Route
+				path="/register"
+				element={
+					<Register
+						onBack={() => navigate("/login")}
+						onLogin={handleLoginSuccess}
+						sessionMessage={sessionMessage}
+					/>
+				}
+			/>
 			<Route path="*" element={<Navigate to="/" replace />} />
 		</Routes>
 	);

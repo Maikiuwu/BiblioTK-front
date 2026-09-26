@@ -1,4 +1,8 @@
-import { ArrowLeft, ArrowRight, CheckCircle } from "@phosphor-icons/react";
+import {
+	ArrowLeftIcon,
+	ArrowRightIcon,
+	CheckCircleIcon,
+} from "@phosphor-icons/react";
 import {
 	Alert,
 	AuthLayout,
@@ -9,14 +13,11 @@ import {
 	TextField,
 } from "bibliotk-ui";
 import { useState } from "react";
+import { loginUser } from "../../service/LoginService";
 import { registerUser } from "../../service/RegisterService";
+import { createLoginUserDto } from "../dto/loginUser.dto";
 import { createRegisterUserDto } from "../dto/registerUser.dto";
-import {
-	emailPattern,
-	fieldLimits,
-	namePattern,
-	validateUserData as validateSharedUserData,
-} from "../utils/userValidation.js";
+import { validateUserData as validateSharedUserData } from "../utils/userValidation.js";
 
 const initialFormData = {
 	nombres: "",
@@ -37,22 +38,16 @@ function validateUserData(formData) {
 		return sharedError;
 	}
 
-	if (formData.contrasena.trim().length < 8) {
-		return {
-			field: "contrasena",
-			message: "La contraseña debe tener al menos 8 caracteres.",
-		};
-	}
-
 	return null;
 }
 
-function Register({ onBack }) {
+function Register({ onBack, onLogin }) {
 	const [submitted, setSubmitted] = useState(false);
 	const [formData, setFormData] = useState(initialFormData);
 	const [fieldError, setFieldError] = useState(null);
 	const [error, setError] = useState("");
 	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [isLoggingIn, setIsLoggingIn] = useState(false);
 
 	function handleChange(event) {
 		const { name, value } = event.target;
@@ -102,6 +97,27 @@ function Register({ onBack }) {
 		}
 	};
 
+	async function handleAutoLogin() {
+		setIsLoggingIn(true);
+		setError("");
+
+		try {
+			const loginData = createLoginUserDto({
+				email: formData.email,
+				password: formData.contrasena,
+				rememberMe: false,
+			});
+			await loginUser(loginData);
+			onLogin();
+		} catch (loginError) {
+			// Si el auto-login falla por alguna razón, no dejamos al usuario
+			// atrapado: lo mandamos al login manual para que lo intente de nuevo.
+			onBack();
+		} finally {
+			setIsLoggingIn(false);
+		}
+	}
+
 	return (
 		<AuthLayout
 			width="wide"
@@ -115,7 +131,7 @@ function Register({ onBack }) {
 			{submitted ? (
 				<div className="motion-safe:animate-rise" role="status">
 					<span className="grid size-14 place-items-center rounded-2xl bg-pine-900 text-honey-300">
-						<CheckCircle aria-hidden="true" className="size-7" />
+						<CheckCircleIcon aria-hidden="true" className="size-7" />
 					</span>
 					<h2 className="mt-6 font-display text-[2.5rem] leading-none font-extrabold tracking-[-0.04em] text-pine-950">
 						Cuenta creada
@@ -127,10 +143,13 @@ function Register({ onBack }) {
 					<Button
 						size="lg"
 						className="mt-8 w-full"
-						onClick={onBack}
-						trailingIcon={<ArrowRight aria-hidden="true" className="size-4" />}
+						onClick={handleAutoLogin}
+						loading={isLoggingIn}
+						trailingIcon={
+							<ArrowRightIcon aria-hidden="true" className="size-4" />
+						}
 					>
-						Ir a iniciar sesión
+						{isLoggingIn ? "Ingresando..." : "Ir a mi biblioteca"}
 					</Button>
 				</div>
 			) : (
@@ -140,7 +159,7 @@ function Register({ onBack }) {
 						onClick={onBack}
 						className="group inline-flex items-center gap-2 text-sm font-semibold text-ink-soft transition-colors duration-150 hover:text-pine-900"
 					>
-						<ArrowLeft
+						<ArrowLeftIcon
 							aria-hidden="true"
 							className="size-4 transition-transform duration-200 ease-out-strong group-hover:-translate-x-0.5"
 						/>
@@ -163,14 +182,11 @@ function Register({ onBack }) {
 						<TextField
 							id="cc"
 							name="cc"
-							label="Cédula de identidad"
+							label="Numero de identidad"
 							type="number"
 							inputMode="numeric"
-							pattern="[0-9]*"
-							min="1"
-							step="1"
-							title="La cédula debe ser un número entero mayor que 0"
 							placeholder="12345678"
+							title="Ingresa tu número de identidad sin puntos ni guiones"
 							autoComplete="off"
 							required
 							value={formData.cc}
@@ -183,8 +199,6 @@ function Register({ onBack }) {
 							label="Correo electrónico"
 							type="email"
 							placeholder="tu@correo.com"
-							pattern={emailPattern}
-							maxLength={fieldLimits.email}
 							title="Usa un correo con dominio, por ejemplo tu@correo.com"
 							autoComplete="email"
 							required
@@ -198,9 +212,6 @@ function Register({ onBack }) {
 							label="Nombres"
 							type="text"
 							placeholder="María"
-							pattern={namePattern}
-							minLength={2}
-							maxLength={fieldLimits.nombres}
 							title="Solo se permiten letras, espacios, apóstrofes o guiones"
 							autoComplete="given-name"
 							required
@@ -214,9 +225,6 @@ function Register({ onBack }) {
 							label="Apellidos"
 							type="text"
 							placeholder="González"
-							pattern={namePattern}
-							minLength={2}
-							maxLength={fieldLimits.apellidos}
 							title="Solo se permiten letras, espacios, apóstrofes o guiones"
 							autoComplete="family-name"
 							required
@@ -230,7 +238,6 @@ function Register({ onBack }) {
 							label="Nombre de usuario"
 							type="text"
 							placeholder="mari"
-							maxLength={fieldLimits.nombreUsuario}
 							autoComplete="username"
 							required
 							value={formData.nombreUsuario}
@@ -243,7 +250,6 @@ function Register({ onBack }) {
 							label="Celular"
 							type="tel"
 							placeholder="04121234567"
-							pattern="[0-9]{7,15}"
 							title="Ingresa entre 7 y 15 dígitos"
 							autoComplete="tel"
 							required
@@ -257,7 +263,6 @@ function Register({ onBack }) {
 							label="Contraseña"
 							placeholder="••••••••"
 							autoComplete="new-password"
-							minLength={8}
 							hint="Usa al menos 8 caracteres."
 							required
 							value={formData.contrasena}
@@ -284,7 +289,7 @@ function Register({ onBack }) {
 							size="lg"
 							loading={isSubmitting}
 							trailingIcon={
-								<ArrowRight aria-hidden="true" className="size-4" />
+								<ArrowRightIcon aria-hidden="true" className="size-4" />
 							}
 							className="mt-2 w-full sm:col-span-2"
 						>
