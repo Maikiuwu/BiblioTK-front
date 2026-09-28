@@ -8,6 +8,7 @@ export async function registerUser(userData) {
 	try {
 		response = await fetch(registerUrl, {
 			method: "POST",
+			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
 			},
