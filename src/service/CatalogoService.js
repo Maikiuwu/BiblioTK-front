@@ -1,6 +1,6 @@
 const materialesUrl =
 	import.meta.env.VITE_MATERIALES_URL ??
-	"http://localhost:3004/MaterialesBiblioTK/Materiales";
+	"http://localhost:3003/MaterialesBiblioTK/Materiales";
 
 // Lectura pública: MaterialesBiblioTK no exige sesión para GET /Materiales
 export async function listCatalogo() {

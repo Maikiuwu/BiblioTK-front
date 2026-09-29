@@ -4,8 +4,8 @@ Parte del sistema BiblioTK (ver `../CLAUDE.md`). Reemplaza la parte pública de 
 
 - **Arranque:** `npm run dev` → http://localhost:5172
 - **Tipografías/íconos:** igual que el resto de los fronts — Fontsource (Bricolage Grotesque + Geist) y `@phosphor-icons/react` con `IconContext` fijado en `src/main.jsx`.
-- **Librería de interfaz:** `bibliotk-ui` (`file:../BiblioTK-ui`) — ver su CLAUDE.md para el sistema de diseño completo. `vite.config.js` necesita el `resolve.dedupe` de React/router/íconos, si no se duplica React.
-- **`main.jsx`** envuelve `<App />` en `ErrorBoundary` (de `bibliotk-ui`), afuera del `BrowserRouter`.
+- **Librería de interfaz:** `bibliotk-ui` `^0.1.0` **de npm** (repo `UiBiblioTK`). Esa versión no trae `ErrorBoundary`, `Footer` ni `Select`: por eso `ErrorBoundary`, `PublicFooter` y `CoverImage` viven en `src/app/components/`. `vite.config.js` necesita el `resolve.dedupe` de React/router/íconos, si no se duplica React.
+- **`main.jsx`** envuelve `<App />` en `ErrorBoundary` (el local), afuera del `BrowserRouter`.
 
 ## Estructura
 
@@ -21,13 +21,14 @@ src/
       Register.jsx
     components/
       PublicNav.jsx   # Nav compartido entre Landing y Catalogo (única pieza que usan ambas páginas)
+      CoverImage.jsx  # Portada con respaldo remota → local (copia igual en front-user y front-admin)
     dto/              # loginUser, registerUser
     utils/userValidation.js  # Validación compartida con BiblioTK-front-user (Perfil)
     styles/globals.css
   service/
     LoginService.js     # loginUser, getCurrentSession, logoutUser → :3001
     RegisterService.js  # registerUser → :3000
-    CatalogoService.js  # listCatalogo → :3004 (MaterialesBiblioTK, lectura pública)
+    CatalogoService.js  # listCatalogo → :3003 (MaterialesBiblioTK, lectura pública)
 ```
 
 ## Redirección entre apps (`App.jsx`)
@@ -41,7 +42,7 @@ Cada rol vive en una app/puerto separado. `ROLE_HOME` mapea `rol` → `{ path, u
 | `superadmin` | BiblioTK-front-superadmin | 5145 |
 | `catalogo` | (futuro, servicio propio) | 5146 |
 
-Tras un login exitoso, `InicioSesionBiblioTK` ya dejó la cookie `bibliotk_rol` (no httpOnly) en la misma respuesta de `POST /Login`: `handleLoginSuccess` la lee directo de `document.cookie` (helper local `leerCookie`) y hace `window.location.assign(...)` a la app correspondiente — sin esperar un segundo `GET /Sesion`. Esa cookie es solo una ayuda de enrutamiento en el cliente: la sesión real la sigue validando cada backend contra la cookie `token_acceso` (httpOnly).
+Tras un login exitoso, `handleLoginSuccess` consulta `GET /Sesion` para conocer el rol y hace `window.location.assign(...)` a la app correspondiente. (`InicioSesionBiblioTK` también deja la cookie `bibliotk_rol`, no httpOnly, que hoy este front no lee.) La sesión real la valida cada backend contra la cookie `token_acceso` (httpOnly).
 
 ### Mensajes tras un redirect entre apps (`?motivo=`)
 
@@ -49,7 +50,7 @@ Las otras 3 apps no pueden pasar estado de React cuando redirigen acá con `wind
 
 ## Catálogo (`Catalogo.jsx`)
 
-Pública, sin sesión: llama a `GET /MaterialesBiblioTK/Materiales` (público en el backend). Si el servicio no responde o no hay materiales cargados, muestra una pantalla "en construcción" (mismo estilo que `Construccion.jsx` en `BiblioTK-front-user`) en vez de un error o una página en blanco. Con datos, muestra una grilla de tarjetas de solo lectura — no hay edición acá, eso vive en `BiblioTK-front-admin`.
+Pública, sin sesión: llama a `GET /MaterialesBiblioTK/Materiales` (público en el backend). Si el servicio no responde o no hay materiales cargados, muestra una pantalla "en construcción" en vez de un error o una página en blanco. Con datos, muestra una grilla de tarjetas de solo lectura con la portada de cada material (`CoverImage`: primero la copia remota/Cloudinary, si falla la local) — no hay edición ni préstamos acá: pedir un préstamo es de `BiblioTK-front-user`, editar es de `BiblioTK-front-admin`.
 
 ## Registro (`Register.jsx`)
 
