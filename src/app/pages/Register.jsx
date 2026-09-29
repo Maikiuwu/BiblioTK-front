@@ -182,8 +182,8 @@ function Register({ onBack, onLogin }) {
 						<TextField
 							id="cc"
 							name="cc"
-							label="Numero de identidad"
-							type="number"
+							label="Número de identidad"
+							type="text"
 							inputMode="numeric"
 							placeholder="12345678"
 							title="Ingresa tu número de identidad sin puntos ni guiones"

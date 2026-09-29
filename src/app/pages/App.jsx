@@ -25,7 +25,7 @@ const ROLE_HOME = {
 	},
 	superadmin: {
 		path: "/HomeSuperAdmin",
-		url: import.meta.env.VITE_SUPERADMIN_APP_URL ?? "http://localhost:5145",
+		url: import.meta.env.VITE_SUPERADMIN_APP_URL ?? "http://localhost:5175",
 	},
 	catalogo: {
 		path: "/HomeCatalogo",

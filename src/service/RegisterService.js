@@ -5,10 +5,11 @@ const registerUrl =
 export async function registerUser(userData) {
 	let response;
 
+	// Sin credentials: registrarse no necesita cookies, y RegistroBiblioTK no habilita
+	// credenciales en su CORS (con "include" el navegador bloquea la petición)
 	try {
 		response = await fetch(registerUrl, {
 			method: "POST",
-			credentials: "include",
 			headers: {
 				"Content-Type": "application/json",
 			},
