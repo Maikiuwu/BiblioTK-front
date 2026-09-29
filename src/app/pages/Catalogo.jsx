@@ -3,6 +3,7 @@ import { buttonClasses } from "bibliotk-ui";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listCatalogo } from "../../service/CatalogoService.js";
+import CoverImage from "../components/CoverImage.jsx";
 import PublicFooter from "../components/PublicFooter.jsx";
 import PublicNav from "../components/PublicNav.jsx";
 
@@ -15,21 +16,24 @@ const tipoLabels = {
 function MaterialCard({ material, delay }) {
 	return (
 		<article
-			className="flex min-h-48 flex-col justify-between rounded-[28px] bg-sand-50 p-6 shadow-[inset_0_0_0_1px_var(--color-sand-200)] motion-safe:animate-rise"
+			className="flex flex-col overflow-hidden rounded-[28px] bg-sand-50 shadow-[inset_0_0_0_1px_var(--color-sand-200)] motion-safe:animate-rise"
 			style={{ animationDelay: `${delay}ms` }}
 		>
-			<div>
-				<span className="inline-flex items-center rounded-full bg-honey-200 px-2.5 py-1 text-xs font-semibold text-honey-700">
+			<div className="relative aspect-[3/4] overflow-hidden bg-sand-200">
+				<CoverImage material={material} />
+				<span className="absolute top-3 left-3 inline-flex items-center rounded-full bg-honey-200 px-2.5 py-1 text-xs font-semibold text-honey-700 shadow-[0_4px_12px_-6px_rgb(11_34_28/0.45)]">
 					{tipoLabels[material.tipoMaterial] ?? material.tipoMaterial}
 				</span>
-				<h2 className="mt-4 font-display text-xl font-extrabold tracking-[-0.03em] text-pine-950">
+			</div>
+			<div className="flex flex-1 flex-col p-5">
+				<h2 className="font-display text-xl leading-tight font-extrabold tracking-[-0.03em] text-pine-950">
 					{material.titulo}
 				</h2>
 				<p className="mt-1 text-sm text-ink-soft">{material.autor}</p>
+				<p className="mt-auto pt-5 text-sm font-medium text-ink-soft">
+					{material.disponible ? "Disponible" : "No disponible"}
+				</p>
 			</div>
-			<p className="mt-6 text-sm font-medium text-ink-soft">
-				{material.disponible ? "Disponible" : "No disponible"}
-			</p>
 		</article>
 	);
 }
@@ -92,11 +96,11 @@ function Catalogo() {
 			<PublicNav />
 			<main className="mx-auto max-w-6xl px-3 pb-20 md:px-3">
 				{status === "loading" && (
-					<div aria-busy="true" className="grid gap-3 md:grid-cols-3">
-						{[0, 1, 2, 3, 4, 5].map((key) => (
+					<div aria-busy="true" className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+						{[0, 1, 2, 3].map((key) => (
 							<span
 								key={key}
-								className="block h-48 animate-pulse rounded-[28px] bg-sand-200/60"
+								className="block aspect-[3/5] animate-pulse rounded-[28px] bg-sand-200/60"
 							/>
 						))}
 					</div>
@@ -117,7 +121,7 @@ function Catalogo() {
 						</header>
 						<section
 							aria-label="Material bibliográfico"
-							className="mt-10 grid gap-3 sm:grid-cols-2 md:grid-cols-3"
+							className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
 						>
 							{materiales.map((material, index) => (
 								<MaterialCard
