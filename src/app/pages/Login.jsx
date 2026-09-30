@@ -1,4 +1,4 @@
-import { ArrowRight } from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react/ArrowRight";
 import {
 	Alert,
 	AuthLayout,
@@ -36,13 +36,14 @@ function Login({ onLogin, onRegister, sessionMessage }) {
 
 		try {
 			const loginData = createLoginUserDto({ email, password, rememberMe });
-			await loginUser(loginData);
-			onLogin();
+			const { user } = await loginUser(loginData);
+			// Si ya se va a la app del rol, el botón sigue en "Verificando..." hasta que cambie la página
+			if (await onLogin(user?.rol)) return;
 		} catch (loginError) {
 			setError(loginError.message);
-		} finally {
-			setIsSubmitting(false);
 		}
+
+		setIsSubmitting(false);
 	}
 
 	return (

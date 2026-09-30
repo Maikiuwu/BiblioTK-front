@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import {
 	Navigate,
 	Route,
@@ -9,10 +9,15 @@ import {
 
 import { getCurrentSession } from "../../service/LoginService";
 
-import Catalogo from "./Catalogo.jsx";
 import Landing from "./Landing.jsx";
 import Login from "./Login.jsx";
-import Register from "./Register.jsx";
+
+// La landing y el login llegan en el paquete inicial; el catálogo y el registro (con Zod) se descargan aparte
+const cargarCatalogo = () => import("./Catalogo.jsx");
+const cargarRegister = () => import("./Register.jsx");
+
+const Catalogo = lazy(cargarCatalogo);
+const Register = lazy(cargarRegister);
 
 const ROLE_HOME = {
 	usuario: {
@@ -66,46 +71,65 @@ function AppContent() {
 		() => MOTIVO_MENSAJES[searchParams.get("motivo")] ?? "",
 	);
 
-	async function handleLoginSuccess() {
+	useEffect(() => {
+		// Con la primera pantalla lista, el catálogo y el registro se bajan cuando el navegador queda libre
+		const precargar = () => {
+			cargarCatalogo();
+			cargarRegister();
+		};
+
+		if ("requestIdleCallback" in window) {
+			requestIdleCallback(precargar);
+		} else {
+			setTimeout(precargar, 200);
+		}
+	}, []);
+
+	// Devuelve true si ya se está yendo a la app del rol: el botón sigue cargando hasta que cambie la página
+	async function handleLoginSuccess(rolLogin) {
 		try {
-			const currentSession = await getCurrentSession();
-			const rol = currentSession?.user?.rol;
+			// El login ya devuelve el rol; /Sesion queda solo de respaldo por si no viene
+			const rol = rolLogin ?? (await getCurrentSession())?.user?.rol;
 
 			if (!rol) throw new Error("Sesión sin rol");
 
 			window.location.assign(getRoleHomeUrl(rol));
+			return true;
 		} catch {
 			setSessionMessage("No se pudo validar la sesión. Intenta nuevamente.");
 			navigate("/login", { replace: true });
+			return false;
 		}
 	}
 
 	return (
-		<Routes>
-			<Route path="/" element={<Landing />} />
-			<Route path="/catalogo" element={<Catalogo />} />
-			<Route
-				path="/login"
-				element={
-					<Login
-						onLogin={handleLoginSuccess}
-						onRegister={() => navigate("/register")}
-						sessionMessage={sessionMessage}
-					/>
-				}
-			/>
-			<Route
-				path="/register"
-				element={
-					<Register
-						onBack={() => navigate("/login")}
-						onLogin={handleLoginSuccess}
-						sessionMessage={sessionMessage}
-					/>
-				}
-			/>
-			<Route path="*" element={<Navigate to="/" replace />} />
-		</Routes>
+		<Suspense fallback={null}>
+			<Routes>
+				<Route path="/" element={<Landing />} />
+				<Route path="/catalogo" element={<Catalogo />} />
+				<Route
+					path="/login"
+					element={
+						<Login
+							onLogin={handleLoginSuccess}
+							onRegister={() => navigate("/register")}
+							sessionMessage={sessionMessage}
+						/>
+					}
+				/>
+				<Route
+					path="/register"
+					element={
+						<Register
+							onBack={() => navigate("/login")}
+							onLogin={handleLoginSuccess}
+							sessionMessage={sessionMessage}
+						/>
+					}
+				/>
+				<Route path="*" element={<Navigate to="/" replace />} />
+			</Routes>
+		</Suspense>
 	);
 }
 

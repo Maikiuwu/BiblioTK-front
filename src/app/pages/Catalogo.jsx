@@ -1,9 +1,8 @@
-import { ArrowLeft } from "@phosphor-icons/react";
-import { buttonClasses } from "bibliotk-ui";
+import { ArrowLeft } from "@phosphor-icons/react/ArrowLeft";
+import { buttonClasses, CoverImage } from "bibliotk-ui";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listCatalogo } from "../../service/CatalogoService.js";
-import CoverImage from "../components/CoverImage.jsx";
 import PublicFooter from "../components/PublicFooter.jsx";
 import PublicNav from "../components/PublicNav.jsx";
 

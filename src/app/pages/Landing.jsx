@@ -1,10 +1,8 @@
-import {
-	ArrowRight,
-	ArrowsLeftRight,
-	ArrowUpRight,
-	Books,
-	UserCircle,
-} from "@phosphor-icons/react";
+import { ArrowRight } from "@phosphor-icons/react/ArrowRight";
+import { ArrowsLeftRight } from "@phosphor-icons/react/ArrowsLeftRight";
+import { ArrowUpRight } from "@phosphor-icons/react/ArrowUpRight";
+import { Books } from "@phosphor-icons/react/Books";
+import { UserCircle } from "@phosphor-icons/react/UserCircle";
 import { Button, buttonClasses } from "bibliotk-ui";
 import { Link } from "react-router-dom";
 import PublicFooter from "../components/PublicFooter.jsx";

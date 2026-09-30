@@ -1,8 +1,6 @@
-import {
-	ArrowLeftIcon,
-	ArrowRightIcon,
-	CheckCircleIcon,
-} from "@phosphor-icons/react";
+import { ArrowLeftIcon } from "@phosphor-icons/react/ArrowLeft";
+import { ArrowRightIcon } from "@phosphor-icons/react/ArrowRight";
+import { CheckCircleIcon } from "@phosphor-icons/react/CheckCircle";
 import {
 	Alert,
 	AuthLayout,
@@ -107,15 +105,16 @@ function Register({ onBack, onLogin }) {
 				password: formData.contrasena,
 				rememberMe: false,
 			});
-			await loginUser(loginData);
-			onLogin();
-		} catch (loginError) {
+			const { user } = await loginUser(loginData);
+			// Si ya se va a la app del rol, el botón sigue en "Ingresando..." hasta que cambie la página
+			if (await onLogin(user?.rol)) return;
+		} catch {
 			// Si el auto-login falla por alguna razón, no dejamos al usuario
 			// atrapado: lo mandamos al login manual para que lo intente de nuevo.
 			onBack();
-		} finally {
-			setIsLoggingIn(false);
 		}
+
+		setIsLoggingIn(false);
 	}
 
 	return (
